@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Lighting Control</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #ffcc00; /* Changed to a gold color */
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        h2 {
+            text-align: center;
+            color: #e7f3fe; /* Light blue for subheading */
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, background 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-2px);
+        }
+        .active {
+            background: linear-gradient(to right, #ff7e5f, #feb47b); /* Gradient for active state */
+        }
+        #logo {
+            display: block;
+            margin: 0 auto 20px;
+            width: 100px;
+            
+        }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            border-radius: 5px;
+        }
+        .connection-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .connected {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .disconnected {
+            background-color: #f44336;
+            color: white;
+        }
+        .relay-control {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        .relay-control:hover {
+            background-color: #f0f0f0;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .status-box {
+            width: 60px;
+            height: 34px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .status-on {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status-off {
+            background-color: #f44336;
+            color: white;
+        }
+        .label-input {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            color: #333;
+            width: 80px;
+            text-align: right;
+        }
+        #submitIp {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #submitIp:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <img id="logo" src="logo.jfif" alt="Logo">
+        <h1>Smart Lighting Control</h1>
+        <h2>Control Your Lights with Ease</h2>
+        <div id="status"></div>
+        
+        <div class="connection-status" id="connectionStatus">Connecting...</div>
+
+        <!-- Added dynamic IP input with submission button -->
+        <div>
+            <label for="esp32IpInput">ESP32 IP Address:</label>
+            <input type="text" id="esp32IpInput" placeholder="Enter ESP32 IP Address" />
+            <button id="submitIp">Submit</button>
+        </div>
+
+        <div class="relay-control">
+            <label class="switch">
+                <input type="checkbox" id="relaySwitch1">
+                <span class="slider"></span>
+            </label>
+            <div class="status-box" id="relayStatus1" class="status-off">OFF</div>
+            <input type="text" class="label-input" id="label1" value="Light 1">
+        </div>
+        <div class="relay-control">
+            <label class="switch">
+                <input type="checkbox" id="relaySwitch2">
+                <span class="slider"></span>
+            </label>
+            <div class="status-box" id="relayStatus2" class="status-off">OFF</div>
+            <input type="text" class="label-input" id="label2" value="Light 2">
+        </div>
+        <div class="relay-control">
+            <label class="switch">
+                <input type="checkbox" id="relaySwitch3">
+                <span class="slider"></span>
+            </label>
+            <div class="status-box" id="relayStatus3" class="status-off">OFF</div>
+            <input type="text" class="label-input" id="label3" value="Light 3">
+        </div>
+        <div class="relay-control">
+            <label class="switch">
+                <input type="checkbox" id="relaySwitch4">
+                <span class="slider"></span>
+            </label>
+            <div class="status-box" id="relayStatus4" class="status-off">OFF</div>
+            <input type="text" class="label-input" id="label4" value="Light 4">
+        </div>
+        <div class="relay-control">
+            <label class="switch">
+                <input type="checkbox" id="relaySwitch5">
+                <span class="slider"></span>
+            </label>
+            <div class="status-box" id="relayStatus5" class="status-off">OFF</div>
+            <input type="text" class="label-input" id="label5" value="Light 5">
+        </div>
+        <div class="relay-control">
+            <label class="switch">
+                <input type="checkbox" id="relaySwitch6">
+                <span class="slider"></span>
+            </label>
+            <div class="status-box" id="relayStatus6" class="status-off">OFF</div>
+            <input type="text" class="label-input" id="label6" value="Light 6">
+        </div>
+    </div>
+
+   <script>
+    let esp32IP = ''; // Initially empty, will be set when the user submits
+
+    // Function to update the IP address based on user input
+    function updateEsp32IP() {
+        esp32IP = document.getElementById('esp32IpInput').value;
+        updateStatus(); // Update status immediately after changing the IP
+    }
+
+    // Add an event listener to the button to update the IP
+    document.getElementById('submitIp').addEventListener('click', updateEsp32IP);
+
+    // Function to update the connection status
+    function updateConnectionStatus(isConnected) {
+        const connectionStatus = document.getElementById('connectionStatus');
+        if (isConnected) {
+            connectionStatus.textContent = 'Connected to ESP32';
+            connectionStatus.className = 'connection-status connected';
+        } else {
+            connectionStatus.textContent = 'Disconnected from ESP32';
+            connectionStatus.className = 'connection-status disconnected';
+        }
+    }
+
+    // Function to update the status of the relays and distance
+    function updateStatus() {
+        if (!esp32IP) {
+            console.error('ESP32 IP not set'); // Log an error if the IP is not set
+            updateConnectionStatus(false);
+            return;
+        }
+
+        fetch(`http://${esp32IP}/status`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received from ESP32:', data); // Log the data received
+                if (data) {
+                    updateConnectionStatus(true); // Update to connected status
+                    document.getElementById('status').innerHTML = `
+                        <p>Distance: ${data.distance} cm</p>
+                    `;
+
+                    // Update each relay status
+                    let anyRelayOn = false;
+                    for (let i = 0; i < 6; i++) {
+                        const relayStatusLabel = document.getElementById(`relayStatus${i + 1}`);
+                        const relaySwitch = document.getElementById(`relaySwitch${i + 1}`);
+                        relaySwitch.checked = data.relays[i]; // Corrected here
+                        relayStatusLabel.textContent = relaySwitch.checked ? 'ON' : 'OFF';
+                        relayStatusLabel.className = relaySwitch.checked ? 'status-box status-on' : 'status-box status-off';
+                        if (relaySwitch.checked) {
+                            anyRelayOn = true;
+                        }
+                    }
+                    // Change background if any relay is on
+                    mainContainer.classList.toggle('active', anyRelayOn);
+                } else {
+                    updateConnectionStatus(false); // No data received, update to disconnected
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching status:', error);
+                updateConnectionStatus(false); // Update to disconnected on error
+            });
+    }
+    function validateIpAddress(ip) {
+    const pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return pattern.test(ip);
+}
+
+document.getElementById('submitIp').addEventListener('click', () => {
+    const inputIp = document.getElementById('esp32IpInput').value;
+    if (validateIpAddress(inputIp)) {
+        updateEsp32IP();
+    } else {
+        alert('Please enter a valid IP address.');
+    }
+});
+// Function to save labels to local storage
+function saveLabels() {
+    for (let i = 1; i <= 6; i++) {
+        const label = document.getElementById(`label${i}`).value;
+        localStorage.setItem(`label${i}`, label);
+    }
+}
+
+// Function to load labels from local storage
+function loadLabels() {
+    for (let i = 1; i <= 6; i++) {
+        const savedLabel = localStorage.getItem(`label${i}`);
+        if (savedLabel) {
+            document.getElementById(`label${i}`).value = savedLabel;
+        }
+    }
+}
+
+// Event listeners to save labels when they change
+document.querySelectorAll('.label-input').forEach(input => {
+    input.addEventListener('input', saveLabels);
+});
+
+// Load labels when the page loads
+window.addEventListener('load', loadLabels);
+
+    // Function to toggle relay state
+    function toggleRelay(relayId) {
+        fetch(`http://${esp32IP}/toggleRelay?relay=${relayId}`, { method: 'POST' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text(); // Use text for simple messages
+            })
+            .then(message => {
+                console.log(message); // Log success message
+                updateStatus(); // Refresh the status after toggling
+            })
+            .catch(error => {
+                console.error('Error toggling relay:', error);
+            });
+    }
+
+    // Event listeners for relay switches
+    document.querySelectorAll('.switch input').forEach((input, index) => {
+        input.addEventListener('change', function() {
+            toggleRelay(index + 1); // Relay IDs start from 1
+        });
+    });
+
+    // Update status every 2 seconds
+    setInterval(updateStatus, 2000);
+    updateStatus(); // Initial call to update status on page load
+</script>
+</body>
+</html>
